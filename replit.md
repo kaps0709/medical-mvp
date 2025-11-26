@@ -51,19 +51,26 @@ A production-ready FastAPI backend for an AI-powered medical scribe application.
 - `DELETE /{id}` - Delete visit
 
 ### Audio (`/api/v1/audio`)
-- `POST /upload` - Upload audio file (WAV/MP3)
+- `POST /upload` - Upload audio file (WAV/MP3/M4A/OGG/WebM)
 - `GET /files` - List uploaded files
 
 ### AI Services (`/api/v1/ai`)
-- `POST /transcribe` - Transcribe audio to text
-- `POST /soap` - Generate SOAP note from transcription
+- `POST /transcribe` - Transcribe audio to text using OpenAI Whisper
+- `POST /soap` - Generate SOAP note from transcription using GPT-4
 - `POST /prescription` - Generate prescription from assessment
 - `GET /prescription/{visit_id}/pdf` - Download prescription PDF
 
 ## Environment Variables
-- `DATABASE_URL` - PostgreSQL connection string (auto-configured)
-- `SESSION_SECRET` - JWT secret key (auto-configured)
-- `OPENAI_API_KEY` - OpenAI API key for AI features
+
+### Required
+- `DATABASE_URL` - PostgreSQL connection string (auto-configured on Replit)
+- `SESSION_SECRET` - JWT secret key (auto-configured on Replit)
+
+### Optional
+- `OPENAI_API_KEY` - OpenAI API key for AI features (transcription, SOAP notes, prescriptions)
+- `CORS_ORIGINS` - Comma-separated list of allowed origins (default: `*`)
+  - Example: `https://example.com,https://app.example.com`
+  - When set to `*`, credentials are disabled for security
 
 ## Running the Application
 ```bash
@@ -81,11 +88,19 @@ alembic revision --autogenerate -m "description"
 - Swagger UI: `/docs`
 - ReDoc: `/redoc`
 
+## User Roles
+- **doctor** - Full access to all features
+- **receptionist** - Patient management, visit scheduling
+- **admin** - System administration
+
 ## Recent Changes
 - Initial project setup with complete FastAPI architecture
-- JWT authentication with role-based access
-- Patient and visit CRUD operations
-- Audio upload with file storage
-- OpenAI Whisper integration for transcription
-- GPT-4 powered SOAP note generation
-- Prescription generation and PDF export
+- JWT authentication with role-based access (doctor, receptionist, admin)
+- Patient and visit CRUD operations with search functionality
+- Audio upload with file storage (WAV, MP3, M4A, OGG, WebM support)
+- OpenAI Whisper integration for audio transcription
+- GPT-4 powered SOAP note generation with structured output
+- Prescription generation with medication suggestions and advice
+- PDF prescription export with professional medical template
+- CORS configuration with proper wildcard/credentials handling
+- Startup validation for required environment variables
