@@ -4,10 +4,15 @@ from fastapi.staticfiles import StaticFiles
 from fastapi.responses import JSONResponse
 import time
 import os
+import sys
 from app.api.v1.router import api_router
 from app.core.config import settings
 from app.db.database import engine, Base
 from app.utils.logger import logger
+
+if not settings.validate_required():
+    logger.error("Configuration validation failed. Exiting.")
+    sys.exit(1)
 
 os.makedirs("storage/audio", exist_ok=True)
 os.makedirs("storage/prescriptions", exist_ok=True)
@@ -20,13 +25,22 @@ app = FastAPI(
     redoc_url="/redoc"
 )
 
-app.add_middleware(
-    CORSMiddleware,
-    allow_origins=settings.CORS_ORIGINS,
-    allow_credentials=True,
-    allow_methods=["*"],
-    allow_headers=["*"],
-)
+if settings.is_cors_wildcard:
+    app.add_middleware(
+        CORSMiddleware,
+        allow_origins=["*"],
+        allow_credentials=False,
+        allow_methods=["*"],
+        allow_headers=["*"],
+    )
+else:
+    app.add_middleware(
+        CORSMiddleware,
+        allow_origins=settings.cors_origins_list,
+        allow_credentials=True,
+        allow_methods=["*"],
+        allow_headers=["*"],
+    )
 
 
 @app.middleware("http")
