@@ -1,0 +1,156 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+/* Definition of the design system. All colors, gradients, fonts, etc should be defined here. 
+All colors MUST be HSL.
+*/
+
+@layer base {
+  :root {
+    /* Medical Blue Theme - Clean, Professional, Trustworthy */
+    --background: 0 0% 100%;
+    --foreground: 210 10% 15%;
+
+    --card: 0 0% 100%;
+    --card-foreground: 210 10% 15%;
+
+    --popover: 0 0% 100%;
+    --popover-foreground: 210 10% 15%;
+
+    /* Medical Blue Primary */
+    --primary: 210 100% 50%;
+    --primary-foreground: 0 0% 100%;
+    
+    /* Lighter blue for hover states */
+    --primary-hover: 210 100% 45%;
+
+    /* Subtle grey for secondary elements */
+    --secondary: 210 15% 96%;
+    --secondary-foreground: 210 10% 20%;
+
+    --muted: 210 15% 95%;
+    --muted-foreground: 210 8% 45%;
+
+    --accent: 210 90% 96%;
+    --accent-foreground: 210 100% 40%;
+
+    --destructive: 0 84% 60%;
+    --destructive-foreground: 0 0% 100%;
+
+    --border: 210 15% 90%;
+    --input: 210 15% 90%;
+    --ring: 210 100% 50%;
+
+    --radius: 0.5rem;
+    
+    /* Medical status colors */
+    --success: 142 76% 36%;
+    --success-foreground: 0 0% 100%;
+    --warning: 38 92% 50%;
+    --warning-foreground: 0 0% 100%;
+    
+    /* Sidebar specific */
+    --sidebar-background: 210 15% 98%;
+    --sidebar-foreground: 210 10% 25%;
+    --sidebar-primary: 210 100% 50%;
+    --sidebar-primary-foreground: 0 0% 100%;
+    --sidebar-accent: 210 100% 96%;
+    --sidebar-accent-foreground: 210 100% 40%;
+    --sidebar-border: 210 15% 92%;
+    --sidebar-ring: 210 100% 50%;
+
+    --sidebar-background: 0 0% 98%;
+
+    --sidebar-foreground: 240 5.3% 26.1%;
+
+    --sidebar-primary: 240 5.9% 10%;
+
+    --sidebar-primary-foreground: 0 0% 98%;
+
+    --sidebar-accent: 240 4.8% 95.9%;
+
+    --sidebar-accent-foreground: 240 5.9% 10%;
+
+    --sidebar-border: 220 13% 91%;
+
+    --sidebar-ring: 217.2 91.2% 59.8%;
+  }
+
+  .dark {
+    --background: 210 15% 10%;
+    --foreground: 210 15% 95%;
+
+    --card: 210 15% 12%;
+    --card-foreground: 210 15% 95%;
+
+    --popover: 210 15% 12%;
+    --popover-foreground: 210 15% 95%;
+
+    --primary: 210 100% 55%;
+    --primary-foreground: 0 0% 100%;
+    
+    --primary-hover: 210 100% 50%;
+
+    --secondary: 210 15% 18%;
+    --secondary-foreground: 210 15% 90%;
+
+    --muted: 210 15% 15%;
+    --muted-foreground: 210 10% 60%;
+
+    --accent: 210 15% 18%;
+    --accent-foreground: 210 100% 55%;
+
+    --destructive: 0 62% 50%;
+    --destructive-foreground: 0 0% 100%;
+
+    --border: 210 15% 20%;
+    --input: 210 15% 20%;
+    --ring: 210 100% 55%;
+    
+    --success: 142 76% 36%;
+    --success-foreground: 0 0% 100%;
+    --warning: 38 92% 50%;
+    --warning-foreground: 0 0% 100%;
+    
+    --sidebar-background: 210 15% 8%;
+    --sidebar-foreground: 210 15% 90%;
+    --sidebar-primary: 210 100% 55%;
+    --sidebar-primary-foreground: 0 0% 100%;
+    --sidebar-accent: 210 15% 15%;
+    --sidebar-accent-foreground: 210 100% 55%;
+    --sidebar-border: 210 15% 18%;
+    --sidebar-ring: 210 100% 55%;
+  }
+}
+
+@layer base {
+  * {
+    @apply border-border;
+  }
+
+  body {
+    @apply bg-background text-foreground;
+    font-feature-settings: "rlig" 1, "calt" 1;
+  }
+  
+  /* Smooth transitions for interactive elements */
+  button, a, input, textarea, select {
+    @apply transition-colors duration-200;
+  }
+}
+
+@layer utilities {
+  .status-recording {
+    @apply bg-destructive text-destructive-foreground;
+    animation: pulse 2s cubic-bezier(0.4, 0, 0.6, 1) infinite;
+  }
+  
+  .status-processing {
+    @apply bg-warning text-warning-foreground;
+  }
+  
+  .status-ready {
+    @apply bg-success text-success-foreground;
+  }
+}
