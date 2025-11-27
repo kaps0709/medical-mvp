@@ -6,60 +6,84 @@ from app.core.config import settings
 def get_openai_client():
     api_key = settings.OPENAI_API_KEY
     if not api_key:
-        raise ValueError("OPENAI_API_KEY not configured")
+        raise ValueError("OPENAI_API_KEY is not configured")
     return OpenAI(api_key=api_key)
 
 
 def generate_soap_note(transcription: str) -> dict:
+    """
+    SOAP Note generator using free-tier model.
+    Strong JSON forcing + inference-friendly clinical logic.
+    """
+
     client = get_openai_client()
-    
-    system_prompt = """You are an experienced medical professional assistant. 
-Your task is to convert a doctor-patient conversation transcript into a structured SOAP note.
 
-SOAP Note Format:
-- Subjective: Patient's complaints, symptoms, history as reported by the patient
-- Objective: Observable, measurable findings (vital signs, physical exam findings mentioned)
-- Assessment: Medical assessment, diagnosis, or differential diagnoses
-- Plan: Treatment plan, medications, follow-up recommendations
+    system_prompt = """
+You are a clinical documentation AI. Convert patient conversation text
+into a **complete SOAP note in VALID JSON format only**.
 
-Provide the response in the following JSON format:
-{
-    "subjective": "Patient's subjective complaints and history",
-    "objective": "Objective findings from examination",
-    "assessment": "Medical assessment and diagnosis",
-    "plan": "Treatment plan and recommendations"
-}
+RULES:
+- ALWAYS return valid JSON. No explanations, no extra text.
+- The JSON MUST contain:
+  {
+    "subjective": "",
+    "objective": "",
+    "assessment": "",
+    "plan": ""
+  }
 
-If certain sections cannot be determined from the transcript, provide reasonable placeholders indicating what information would typically be needed."""
+- SUBJECTIVE:
+  Summarize patient complaints and history using clinical wording.
 
-    user_prompt = f"""Please convert the following medical consultation transcript into a SOAP note:
+- OBJECTIVE:
+  If the transcript has no vitals/exam findings, write:
+  "No objective findings provided."
+
+- ASSESSMENT:
+  * Provide a reasonable clinical impression based on symptoms.
+  * If patient says “fever for 3 days”, infer a likely diagnosis such as:
+      - "Acute febrile illness"
+      - "Likely viral fever"
+  * Never leave blank.
+
+- PLAN:
+  * Provide general medical guidance based on symptoms.
+  * May include tests, rest, hydration, give names of commonly available OTC medicines if appropriate.
+
+STRICT RULE:
+- The response MUST be only JSON and nothing else.
+"""
+
+    user_prompt = f"""
+Create the SOAP note in JSON.
 
 TRANSCRIPT:
 {transcription}
 
-Provide the SOAP note in JSON format."""
+Return ONLY JSON. No markdown. No comments.
+"""
 
     response = client.chat.completions.create(
-        model="gpt-4o",
+        model="gpt-4o-mini",
         messages=[
             {"role": "system", "content": system_prompt},
             {"role": "user", "content": user_prompt}
         ],
-        temperature=0.3,
-        response_format={"type": "json_object"}
+        temperature=0.2
     )
-    
-    soap_content = response.choices[0].message.content
-    soap_note = json.loads(soap_content)
-    
-    required_fields = ["subjective", "objective", "assessment", "plan"]
-    for field in required_fields:
-        if field not in soap_note:
-            soap_note[field] = "Not determined from transcript"
-    
+
+    raw = response.choices[0].message.content.strip()
+
+    # Extra safety: ensure the string contains JSON only
+    try:
+        soap = json.loads(raw)
+    except Exception:
+        raise ValueError(f"AI returned invalid JSON:\n{raw}")
+
+    # Ensure all fields exist
     return {
-        "subjective": soap_note.get("subjective", ""),
-        "objective": soap_note.get("objective", ""),
-        "assessment": soap_note.get("assessment", ""),
-        "plan": soap_note.get("plan", "")
+        "subjective": soap.get("subjective", "Missing"),
+        "objective": soap.get("objective", "Missing"),
+        "assessment": soap.get("assessment", "Missing"),
+        "plan": soap.get("plan", "Missing"),
     }

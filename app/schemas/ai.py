@@ -35,7 +35,7 @@ class Medication(BaseModel):
 
 
 class PrescriptionRequest(BaseModel):
-    patient_id: int
+    patient_id: Optional [int] = None
     soap_assessment: str
     patient_info: Optional[Dict[str, Any]] = None
 

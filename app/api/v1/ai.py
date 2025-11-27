@@ -1,15 +1,13 @@
-from fastapi import APIRouter, Depends, HTTPException, status
+from fastapi import APIRouter, Depends, HTTPException, status, UploadFile, File
 from fastapi.responses import FileResponse
 from sqlalchemy.orm import Session
 import os
+import uuid
+
 from app.db.database import get_db
 from app.models.visit import Visit
 from app.models.patient import Patient
-from app.schemas.ai import (
-    TranscriptionRequest, TranscriptionResponse,
-    SOAPRequest, SOAPResponse, SOAPNote,
-    PrescriptionRequest, PrescriptionResponse
-)
+from app.schemas.ai import SOAPRequest, PrescriptionRequest, PrescriptionResponse
 from app.services.transcription_service import transcribe_audio_from_url
 from app.services.soap_service import generate_soap_note
 from app.services.prescription_service import generate_prescription
@@ -19,18 +17,37 @@ from app.core.config import settings
 
 router = APIRouter()
 
+# Directory for temporary audio uploads
+AUDIO_UPLOAD_DIR = "tmp/audio"
+os.makedirs(AUDIO_UPLOAD_DIR, exist_ok=True)
 
-@router.post("/transcribe", response_model=TranscriptionResponse)
+
+# ============================================================
+#  TRANSCRIPTION ENDPOINT
+# ============================================================
+@router.post("/transcribe")
 async def transcribe_audio_endpoint(
-    request: TranscriptionRequest,
-    current_user: dict = Depends(get_current_user)
+    audio: UploadFile = File(...),
+    #current_user: dict = Depends(get_current_user)
 ):
+    file_id = f"{uuid.uuid4()}.webm"
+    file_path = os.path.join(AUDIO_UPLOAD_DIR, file_id)
+
     try:
-        result = transcribe_audio_from_url(request.audio_file_url)
-        return TranscriptionResponse(
-            transcription=result["transcription"],
-            duration=result.get("duration")
-        )
+        # Save uploaded audio to temporary directory
+        with open(file_path, "wb") as f:
+            f.write(await audio.read())
+
+        # Perform transcription
+        result = transcribe_audio_from_url(file_path)
+
+        # Ensure consistent key for frontend
+        return {
+            "transcription": result.get("text", result.get("transcription", "")),
+            "duration": result.get("duration"),
+            "language": result.get("language")
+        }
+
     except FileNotFoundError as e:
         raise HTTPException(
             status_code=status.HTTP_404_NOT_FOUND,
@@ -46,22 +63,34 @@ async def transcribe_audio_endpoint(
             status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
             detail=f"Transcription failed: {str(e)}"
         )
+    finally:
+        # Delete temporary audio file
+        if os.path.exists(file_path):
+            try:
+                os.remove(file_path)
+            except Exception:
+                pass  # silently ignore cleanup errors
 
 
-@router.post("/soap", response_model=SOAPResponse)
+
+# ============================================================
+#  SOAP GENERATION ENDPOINT
+# ============================================================
+@router.post("/soap")
 async def generate_soap_endpoint(
     request: SOAPRequest,
-    current_user: dict = Depends(get_current_user)
+    #current_user: dict = Depends(get_current_user)
 ):
     try:
         soap_data = generate_soap_note(request.transcription)
-        soap_note = SOAPNote(
-            subjective=soap_data["subjective"],
-            objective=soap_data["objective"],
-            assessment=soap_data["assessment"],
-            plan=soap_data["plan"]
-        )
-        return SOAPResponse(soap_note=soap_note)
+
+        return {
+            "subjective": soap_data.get("subjective", ""),
+            "objective": soap_data.get("objective", ""),
+            "assessment": soap_data.get("assessment", ""),
+            "plan": soap_data.get("plan", "")
+        }
+
     except ValueError as e:
         raise HTTPException(
             status_code=status.HTTP_400_BAD_REQUEST,
@@ -74,11 +103,14 @@ async def generate_soap_endpoint(
         )
 
 
-@router.post("/prescription", response_model=PrescriptionResponse)
+# ============================================================
+#  PRESCRIPTION GENERATION ENDPOINT
+# ============================================================
+@router.post("/prescription1", response_model=PrescriptionResponse)
 async def generate_prescription_endpoint(
     request: PrescriptionRequest,
-    db: Session = Depends(get_db),
-    current_user: dict = Depends(get_current_user)
+    #db: Session = Depends(get_db),
+    #current_user: dict = Depends(get_current_user)
 ):
     patient = db.query(Patient).filter(Patient.id == request.patient_id).first()
     if not patient:
@@ -129,8 +161,72 @@ async def generate_prescription_endpoint(
             status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
             detail=f"Prescription generation failed: {str(e)}"
         )
+        
+        
+@router.post("/prescription", response_model=PrescriptionResponse)
+async def generate_prescription_endpoint(
+    request: PrescriptionRequest,
+):
+    """
+    Simplified demo version.
+    - No database required
+    - No authentication required
+    - Dummy patient info is used
+    """
+
+    # Dummy patient profile for demo
+    patient_info = {
+        "name": "Demo Patient",
+        "age": 30,
+        "gender": "Male",
+        "medical_history": "No significant medical history"
+    }
+
+    # Allow overriding patient info if provided
+    if request.patient_info:
+        patient_info.update(request.patient_info)
+
+    try:
+        # Generate AI prescription
+        result = generate_prescription(
+            soap_assessment=request.soap_assessment,
+            patient_info=patient_info
+        )
+
+        medications = []
+        for med in result.get("medications", []):
+            medications.append({
+                "name": med.get("name", ""),
+                "dosage": med.get("dosage", ""),
+                "frequency": med.get("frequency", ""),
+                "duration": med.get("duration", ""),
+                "instructions": med.get("instructions", "")
+            })
+
+        return PrescriptionResponse(
+            medications=medications,
+            advice=result.get("advice", []),
+            prescription_text=result.get("prescription_text", ""),
+            follow_up=result.get("follow_up")
+        )
+
+    except ValueError as e:
+        raise HTTPException(
+            status_code=status.HTTP_400_BAD_REQUEST,
+            detail=str(e)
+        )
+
+    except Exception as e:
+        raise HTTPException(
+            status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
+            detail=f"Prescription generation failed: {str(e)}"
+        )
 
 
+
+# ============================================================
+#  PRESCRIPTION PDF ENDPOINT
+# ============================================================
 @router.get("/prescription/{visit_id}/pdf")
 async def get_prescription_pdf(
     visit_id: int,

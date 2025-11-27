@@ -21,6 +21,8 @@ class Settings(BaseSettings):
     
     STORAGE_AUDIO_PATH: str = "storage/audio"
     STORAGE_PRESCRIPTIONS_PATH: str = "storage/prescriptions"
+    VITE_API_BASE_URL: str = ""
+
     
     CORS_ORIGINS: str = os.getenv("CORS_ORIGINS", "*")
     CORS_ALLOW_CREDENTIALS: bool = False
