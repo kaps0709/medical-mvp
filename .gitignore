@@ -1,0 +1,69 @@
+# Python
+__pycache__/
+*.py[cod]
+*$py.class
+*.so
+.Python
+build/
+develop-eggs/
+dist/
+downloads/
+eggs/
+.eggs/
+lib/
+lib64/
+parts/
+sdist/
+var/
+wheels/
+*.egg-info/
+.installed.cfg
+*.egg
+
+# Virtual environments
+.env
+.venv
+env/
+venv/
+ENV/
+
+# IDE
+.idea/
+.vscode/
+*.swp
+*.swo
+
+# Testing
+.tox/
+.coverage
+.coverage.*
+htmlcov/
+.pytest_cache/
+
+# Storage (local files)
+storage/audio/*
+storage/prescriptions/*
+!storage/audio/.gitkeep
+!storage/prescriptions/.gitkeep
+
+# Logs
+*.log
+
+# Database
+*.db
+*.sqlite3
+
+# Secrets
+.env.local
+.env.*.local
+
+# Alembic
+alembic/versions/*.pyc
+
+# OS
+.DS_Store
+Thumbs.db
+
+# Replit
+.cache/
+.upm/

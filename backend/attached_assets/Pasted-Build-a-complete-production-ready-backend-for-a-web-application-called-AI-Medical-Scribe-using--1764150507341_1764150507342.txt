@@ -1,0 +1,206 @@
+Build a complete, production-ready backend for a web application called **AI Medical Scribe** using **Python + FastAPI**.
+
+The backend must handle:
+- audio uploads
+- AI-powered transcription
+- AI-generated medical notes (SOAP)
+- prescription generation
+- patient management (CRUD)
+- visit records
+- JWT authentication
+- PostgreSQL database integration
+- PDF prescription export
+- modular services for scalability
+
+========================================================
+🔥 OVERALL ARCHITECTURE REQUIREMENTS
+========================================================
+Use the following stack:
+
+- Python 3.10+
+- FastAPI
+- Uvicorn
+- PostgreSQL
+- SQLAlchemy or Tortoise ORM
+- Alembic for migrations
+- JWT (using PyJWT)
+- Whisper (OpenAI) or WhisperX for transcription
+- OpenAI or Llama API for text generation
+- Celery + Redis for async audio processing (optional but preferred)
+- Pydantic models for validation
+- Jinja2 or ReportLab for PDF prescription generation
+- S3-compatible storage support for audio files (stub out for now)
+
+Follow clean architecture with:
+- /app/api (routes)
+- /app/models
+- /app/schemas
+- /app/services (AI logic, transcription, SOAP generator)
+- /app/core (config, security)
+- /app/db (database setup)
+- /app/utils
+
+Create a fully working backend with proper structure.
+
+========================================================
+🔥 FEATURES TO IMPLEMENT
+========================================================
+
+========================================================
+1. AUTH MODULE
+========================================================
+Endpoints:
+- POST /auth/register
+- POST /auth/login
+- GET /auth/me
+
+Features:
+- JWT token generation
+- password hashing (bcrypt)
+- user roles: doctor, receptionist, admin
+
+========================================================
+2. PATIENT MANAGEMENT
+========================================================
+Endpoints:
+- GET /patients
+- POST /patients
+- GET /patients/{id}
+- PUT /patients/{id}
+- DELETE /patients/{id}
+
+Model fields:
+- id
+- name
+- age
+- gender
+- phone
+- created_at
+
+========================================================
+3. VISIT RECORDS
+========================================================
+Each visit links to a patient.
+
+Endpoints:
+- POST /visits
+- GET /visits/{id}
+- GET /patients/{id}/visits
+- PUT /visits/{id}
+- DELETE /visits/{id}
+
+Model fields:
+- id
+- patient_id
+- transcription_text
+- soap_note
+- prescription_text
+- audio_file_url
+- created_at
+
+========================================================
+4. AUDIO UPLOAD ENDPOINT
+========================================================
+Endpoint:
+- POST /audio/upload
+
+Behavior:
+- Accept .wav or .mp3 file
+- Save file locally in /storage/audio OR mock S3 directory
+- Return file URL
+- Trigger transcription processing (sync or async)
+
+========================================================
+5. TRANSCRIPTION SERVICE
+========================================================
+Service: /app/services/transcription_service.py
+
+- Use Whisper (small/medium model for now)
+- Function: transcribe_audio(file_path)
+- Return raw transcription text
+
+API Endpoint:
+- POST /ai/transcribe
+  Input: {"audio_file_url": "..."}
+  Output: {"transcription": "..."}
+
+========================================================
+6. AI SOAP NOTE GENERATOR
+========================================================
+Service: /app/services/soap_service.py
+
+Use OpenAI or Llama 3 completions.
+
+Input:
+- raw transcript
+
+Output:
+- a structured SOAP note:
+  - Subjective
+  - Objective
+  - Assessment
+  - Plan
+
+API Endpoint:
+- POST /ai/soap
+  Input: {"transcription": "..."}
+  Output: {"soap_note": {...}}
+
+========================================================
+7. PRESCRIPTION GENERATION ENDPOINT
+========================================================
+Service: /app/services/prescription_service.py
+
+Input:
+- patient info
+- SOAP assessment
+
+Output:
+- medication suggestions
+- advice
+- formatted prescription text
+
+API Endpoint:
+- POST /ai/prescription
+
+========================================================
+8. PRESCRIPTION PDF EXPORT
+========================================================
+Endpoint:
+- GET /prescription/{visit_id}/pdf
+
+Features:
+- Use Jinja2 or ReportLab
+- Include doctor details (hardcoded template for now)
+- Simple, clean medical PDF template
+- Save in /storage/prescriptions
+- Return downloadable PDF
+
+========================================================
+🔥 NON-FUNCTIONAL REQUIREMENTS
+========================================================
+- Clean folder structure
+- Dependency injection where appropriate
+- Environment variable config (.env)
+- API versioning (/api/v1/)
+- CORS enabled
+- Logging middleware
+- Error handling middleware
+- Rate limiting stub
+
+========================================================
+🔥 FINAL DELIVERY EXPECTATION
+========================================================
+Provide:
+1. Complete FastAPI file structure
+2. All models, schemas, routes implemented
+3. Working transcription + AI note generator
+4. Database migrations
+5. Instructions for:
+   - how to run locally
+   - how to initialize DB
+   - how to test endpoints
+   - how to switch from dummy AI to real AI keys
+
+Build this backend as if it is going to production.
+
