@@ -22,12 +22,13 @@ wheels/
 
 # Virtual environments
 .env
-.venv
-env/
+.env.*
+.venv/
 venv/
+env/
 ENV/
 
-# IDE
+# IDE / Editors
 .idea/
 .vscode/
 *.swp
@@ -40,30 +41,38 @@ ENV/
 htmlcov/
 .pytest_cache/
 
-# Storage (local files)
+# Local storage (DO NOT upload actual files)
 storage/audio/*
 storage/prescriptions/*
+tmp/*
 !storage/audio/.gitkeep
 !storage/prescriptions/.gitkeep
 
 # Logs
 *.log
 
-# Database
+# Database (local only)
 *.db
 *.sqlite3
 
 # Secrets
 .env.local
 .env.*.local
+*.secret
+*.key
 
 # Alembic
 alembic/versions/*.pyc
 
-# OS
+# OS files
 .DS_Store
 Thumbs.db
 
-# Replit
+# Replit (REMOVE from repo)
+.replit
+.local/
 .cache/
 .upm/
+
+# Misc
+__MACOSX/
