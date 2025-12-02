@@ -24,7 +24,6 @@ more-itertools==10.8.0
 numpy==2.1.3
 pydantic==2.12.0
 pydantic-settings==2.2.1
-pydantic-core==2.41.0
 python-dotenv==1.0.1
 python-multipart==0.0.9
 requests==2.32.3
@@ -36,5 +35,5 @@ typing-extensions==4.12.2
 uvicorn==0.30.0
 websockets==12.0
 
-# Whisper - CPU friendly
+# Whisper (CPU)
 whisper==1.0.0
