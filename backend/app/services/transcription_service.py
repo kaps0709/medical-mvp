@@ -7,7 +7,7 @@ from app.core.config import settings
 # LOCAL WHISPER SETUP
 # ============================================================
 # Load a small Whisper model for fast dev/demo. Change to larger models for more accuracy.
-whisper_model = whisper.load_model("large")  # options: tiny, base, small, medium, large
+whisper_model = whisper.load_model("tiny")  # options: tiny, base, small, medium, large
 
 def transcribe_audio_local(file_path: str) -> dict:
     """
